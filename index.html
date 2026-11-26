@@ -1,0 +1,3068 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>晴空下班書桌 · 明亮動畫風個人儀表板</title>
+  <!-- Google Identity Services (用於 Gmail / Google 日曆 / Google 雲端硬碟自動備份) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root {
+      --sky-top: #7dd3fc;
+      --sky-mid: #bae6fd;
+      --sky-bottom: #fef9c3;
+      --cream-bg: #fffdf7;
+      --glass-bg: rgba(255, 255, 255, 0.84);
+      --glass-border: rgba(255, 255, 255, 0.95);
+      --ink: #1e293b;
+      --muted: #64748b;
+      --accent-blue: #0ea5e9;
+      --accent-coral: #ff7b72;
+      --accent-mint: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --line-green: #06c755;
+      --shadow-soft: 0 8px 24px rgba(14, 165, 233, 0.14);
+      --shadow-card: 0 6px 18px rgba(30, 41, 59, 0.08);
+      --shadow-pop: 0 12px 28px rgba(14, 165, 233, 0.22);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", "Rounded Mplus 1c", system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 14%, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 26%),
+        radial-gradient(circle at 86% 10%, rgba(255, 247, 205, 0.9) 0%, rgba(255, 247, 205, 0) 30%),
+        radial-gradient(circle at 75% 88%, rgba(167, 243, 208, 0.55) 0%, rgba(167, 243, 208, 0) 35%),
+        linear-gradient(165deg, #87d6fb 0%, #c8f0ff 42%, #e9f9ff 72%, #fff8dc 100%);
+      background-attachment: fixed;
+      padding: 14px 18px 32px;
+      overflow-x: hidden;
+    }
+
+    /* ================= 頂部明亮動畫風狀態列 ================= */
+    .desk-topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: linear-gradient(135deg, #38bdf8 0%, #60a5fa 50%, #34d399 100%);
+      color: #ffffff;
+      padding: 11px 18px;
+      border-radius: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.85);
+      box-shadow: var(--shadow-pop);
+      margin-bottom: 14px;
+    }
+
+    .nameplate {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nameplate-badge {
+      background: #fef08a;
+      color: #854d0e;
+      font-weight: 900;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      letter-spacing: 0.5px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    .nameplate-title {
+      font-size: 1.22rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-shadow: 0 2px 6px rgba(14, 116, 144, 0.25);
+    }
+
+    .nameplate-title:hover {
+      text-decoration: underline dashed #fef08a;
+    }
+
+    .desk-widgets-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .clock-pill, .backup-pill {
+      background: rgba(255, 255, 255, 0.24);
+      border: 1.5px solid rgba(255, 255, 255, 0.55);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.83rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(6px);
+    }
+
+    .top-btn {
+      background: #ffffff;
+      color: #0369a1;
+      border: 2px solid #e0f2fe;
+      padding: 6px 13px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 0.82rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+    }
+
+    .top-btn:hover {
+      transform: translateY(-2px);
+      background: #fef9c3;
+      color: #854d0e;
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.14);
+    }
+
+    .top-btn.google-btn {
+      background: #fffbeb;
+      color: #b45309;
+      border-color: #fde68a;
+    }
+
+    .top-btn.google-btn.connected {
+      background: #dcfce7;
+      color: #166534;
+      border-color: #86efac;
+    }
+
+    /* ================= 滿版萬用速記輸入框 ================= */
+    .command-row {
+      margin-bottom: 16px;
+    }
+
+    .smart-input-box {
+      background: rgba(255, 255, 255, 0.92);
+      border: 3px solid #7dd3fc;
+      border-radius: 22px;
+      padding: 14px 20px;
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(8px);
+    }
+
+    .smart-input-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .smart-title {
+      font-weight: 900;
+      font-size: 1rem;
+      color: #0284c7;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mode-switch {
+      display: inline-flex;
+      background: #e0f2fe;
+      border-radius: 999px;
+      padding: 3px;
+    }
+
+    .mode-btn {
+      border: none;
+      background: transparent;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      cursor: pointer;
+      color: #0369a1;
+      transition: all 0.2s;
+    }
+
+    .mode-btn.active {
+      background: #0ea5e9;
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(14, 165, 233, 0.35);
+    }
+
+    .input-main-line {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .input-main-line input[type="text"] {
+      flex: 1;
+      padding: 11px 15px;
+      border: 2px solid #bae6fd;
+      border-radius: 14px;
+      font-size: 0.98rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #ffffff;
+    }
+
+    .input-main-line input[type="text"]:focus {
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.16);
+    }
+
+    .submit-task-btn {
+      background: linear-gradient(135deg, #fb7185, #f97316);
+      color: #fff;
+      border: none;
+      padding: 11px 22px;
+      border-radius: 14px;
+      font-weight: 900;
+      font-size: 0.95rem;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.32);
+      transition: transform 0.15s;
+    }
+
+    .submit-task-btn:hover {
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    .input-options-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 10px;
+      font-size: 0.82rem;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cat-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #f0f9ff;
+      padding: 4px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 800;
+      color: #334155;
+      border: 1.5px solid #e0f2fe;
+      user-select: none;
+      transition: all 0.15s;
+    }
+
+    .cat-check input {
+      accent-color: #0ea5e9;
+      cursor: pointer;
+    }
+
+    .cat-check.detected {
+      background: #fef3c7;
+      border-color: #f59e0b;
+      color: #92400e;
+    }
+
+    .extra-meta-inputs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .extra-meta-inputs input[type="datetime-local"] {
+      border: 1.5px solid #bae6fd;
+      border-radius: 10px;
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      background: #fff;
+    }
+
+    /* ================= 主桌面工作區 ================= */
+    .desk-workspace {
+      background: rgba(255, 255, 255, 0.52);
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      border-radius: 26px;
+      padding: 16px;
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(8px);
+      display: grid;
+      grid-template-columns: 335px 1fr 375px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width: 1280px) {
+      .desk-workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .desk-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .panel-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 15px;
+      box-shadow: var(--shadow-card);
+      border: 2px solid #e0f2fe;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-bottom: 9px;
+      margin-bottom: 10px;
+      border-bottom: 2px dashed #bae6fd;
+    }
+
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 900;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .count-pill {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 1px 8px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 900;
+    }
+
+    .mini-btn {
+      background: #f0f9ff;
+      border: 1.5px solid #bae6fd;
+      color: #0369a1;
+      padding: 4px 9px;
+      border-radius: 10px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .mini-btn:hover {
+      background: #0ea5e9;
+      color: #fff;
+      border-color: #0ea5e9;
+    }
+
+    /* ================= 常用網頁與捷徑 (3欄精巧可愛網格) ================= */
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 9px;
+    }
+
+    .app-icon-item {
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 15px;
+      padding: 10px 6px 8px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+      text-decoration: none;
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app-icon-item:hover {
+      transform: translateY(-4px) scale(1.04);
+      box-shadow: 0 8px 16px rgba(14, 165, 233, 0.18);
+      border-color: #38bdf8;
+      background: #ffffff;
+    }
+
+    .app-emoji-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      margin-bottom: 5px;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .app-name {
+      font-size: 0.74rem;
+      font-weight: 800;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .app-web-badge {
+      position: absolute;
+      top: 3px;
+      left: 4px;
+      font-size: 8px;
+      background: #e0f2fe;
+      color: #0284c7;
+      padding: 1px 4px;
+      border-radius: 5px;
+      font-weight: 900;
+    }
+
+    .app-del-btn {
+      position: absolute;
+      top: 3px;
+      right: 4px;
+      background: rgba(239, 68, 68, 0.9);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      font-size: 10px;
+      line-height: 16px;
+      cursor: pointer;
+      display: none;
+    }
+
+    .app-icon-item:hover .app-del-btn {
+      display: block;
+    }
+
+    /* ================= LINE 訊息通知卡片 ================= */
+    .line-card {
+      background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+      border: 2px solid #86efac;
+    }
+
+    .line-badge {
+      background: #06c755;
+      color: #fff;
+      padding: 1px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 900;
+    }
+
+    .line-status-bar {
+      font-size: 0.75rem;
+      color: #166534;
+      background: #dcfce7;
+      padding: 6px 10px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .line-msg-list {
+      max-height: 220px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      padding-right: 2px;
+    }
+
+    .line-msg-item {
+      background: #ffffff;
+      border: 1.5px solid #bbf7d0;
+      border-left: 4px solid #06c755;
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-size: 0.8rem;
+    }
+
+    .line-msg-item.unread {
+      background: #f0fdf4;
+      box-shadow: 0 2px 8px rgba(6, 199, 85, 0.14);
+    }
+
+    .line-msg-head {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+      color: #14532d;
+      margin-bottom: 3px;
+      font-size: 0.76rem;
+    }
+
+    .line-msg-body {
+      color: #334155;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    /* ================= 中央：明亮動畫風便利貼看板 ================= */
+    .board-frame {
+      background: linear-gradient(135deg, #60a5fa 0%, #38bdf8 50%, #a78bfa 100%);
+      border-radius: 24px;
+      padding: 6px;
+      box-shadow: var(--shadow-pop);
+    }
+
+    .board-screen {
+      background: #fdfeff;
+      background-image: radial-gradient(#bae6fd 1.2px, transparent 1.2px);
+      background-size: 20px 20px;
+      border-radius: 19px;
+      padding: 15px;
+      min-height: 420px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sticky-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tab-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tab-pill {
+      border: 1.5px solid #e0f2fe;
+      background: #f0f9ff;
+      color: #0369a1;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tab-pill.active {
+      background: #0ea5e9;
+      color: #ffffff;
+      border-color: #0ea5e9;
+      box-shadow: 0 3px 8px rgba(14, 165, 233, 0.3);
+    }
+
+    .sticky-notes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 14px;
+      align-items: start;
+    }
+
+    .sticky-note {
+      background: linear-gradient(180deg, #fffbeb 0%, #fef08a 100%);
+      border-radius: 14px 14px 22px 14px;
+      padding: 14px 12px 10px;
+      box-shadow: 0 6px 14px rgba(245, 158, 11, 0.18);
+      position: relative;
+      transform: rotate(-0.6deg);
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 2px solid #fde047;
+    }
+
+    .sticky-note:nth-child(even) {
+      transform: rotate(0.7deg);
+      background: linear-gradient(180deg, #fdf2f8 0%, #fbcfe8 100%);
+      border-color: #f9a8d4;
+      box-shadow: 0 6px 14px rgba(236, 72, 153, 0.14);
+    }
+
+    .sticky-note:nth-child(3n) {
+      background: linear-gradient(180deg, #ecfeff 0%, #a5f3fc 100%);
+      border-color: #67e8f9;
+      box-shadow: 0 6px 14px rgba(6, 182, 212, 0.14);
+    }
+
+    .sticky-note:hover {
+      transform: scale(1.03) rotate(0deg);
+      z-index: 5;
+    }
+
+    .sticky-note.urgent {
+      box-shadow: 0 0 0 2.5px #f43f5e, 0 8px 18px rgba(244, 63, 94, 0.22);
+    }
+
+    .sticky-note.completed {
+      opacity: 0.58;
+      filter: grayscale(0.35);
+    }
+
+    .sticky-note.completed .sticky-text {
+      text-decoration: line-through;
+    }
+
+    .sticky-badge-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    .sticky-cat-tag {
+      font-size: 0.71rem;
+      font-weight: 900;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.78);
+      color: #1e293b;
+    }
+
+    .sticky-text {
+      font-size: 0.9rem;
+      font-weight: 700;
+      line-height: 1.45;
+      color: #1e293b;
+      word-break: break-word;
+      margin-bottom: 8px;
+      white-space: pre-wrap;
+    }
+
+    .sticky-meta {
+      font-size: 0.72rem;
+      color: #475569;
+      margin-bottom: 7px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .sticky-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px dashed rgba(15, 23, 42, 0.16);
+      padding-top: 6px;
+      gap: 4px;
+    }
+
+    .s-btn {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(15, 23, 42, 0.14);
+      border-radius: 8px;
+      padding: 2px 7px;
+      font-size: 0.73rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .s-btn:hover {
+      background: #ffffff;
+      border-color: #0ea5e9;
+      color: #0284c7;
+    }
+
+    /* ================= Gmail 近期郵件卡片 ================= */
+    .gmail-card {
+      background: linear-gradient(180deg, #fff5f5 0%, #ffffff 100%);
+      border: 2px solid #fecaca;
+    }
+
+    .gmail-list {
+      max-height: 280px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 3px;
+    }
+
+    .gmail-item {
+      background: #ffffff;
+      border: 1.5px solid #fee2e2;
+      border-left: 4px solid #ef4444;
+      border-radius: 12px;
+      padding: 9px 12px;
+      text-decoration: none;
+      color: var(--ink);
+      display: block;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .gmail-item:hover {
+      transform: translateX(3px);
+      border-color: #f87171;
+      background: #fffafa;
+    }
+
+    .gmail-item.unread {
+      background: #fef2f2;
+      font-weight: 800;
+    }
+
+    .gmail-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: #b91c1c;
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+
+    .gmail-subject {
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 2px;
+    }
+
+    .gmail-snippet {
+      font-size: 0.75rem;
+      color: #64748b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ================= 生活通知（繳費、還書、取件） ================= */
+    .life-alert-card {
+      background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%);
+      border: 2px solid #fcd34d;
+    }
+
+    .life-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 9px;
+    }
+
+    .life-tab-btn {
+      border: 1.5px solid #fde68a;
+      background: #fffbeb;
+      color: #92400e;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .life-tab-btn.active {
+      background: #f59e0b;
+      color: #fff;
+      border-color: #f59e0b;
+    }
+
+    .life-add-grid {
+      display: grid;
+      grid-template-columns: 95px 1fr;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .life-add-grid select,
+    .life-add-grid input {
+      padding: 6px 8px;
+      border: 1.5px solid #fde68a;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      background: #fff;
+    }
+
+    .life-add-row2 {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .life-add-row2 input {
+      flex: 1;
+      padding: 6px 8px;
+      border: 1.5px solid #fde68a;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      background: #fff;
+    }
+
+    .life-list {
+      max-height: 230px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      padding-right: 2px;
+    }
+
+    .life-item {
+      background: #ffffff;
+      border: 1.5px solid #fde68a;
+      border-left: 4px solid #f59e0b;
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-size: 0.81rem;
+    }
+
+    .life-item.type-bill { border-left-color: #f97316; }
+    .life-item.type-book { border-left-color: #0ea5e9; }
+    .life-item.type-pickup { border-left-color: #10b981; }
+
+    .life-item.due-soon {
+      background: #fff1f2;
+      border-color: #fda4af;
+    }
+
+    .due-badge {
+      font-size: 0.7rem;
+      font-weight: 900;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #fef3c7;
+      color: #92400e;
+      white-space: nowrap;
+    }
+
+    .due-badge.overdue, .due-badge.today {
+      background: #f43f5e;
+      color: #fff;
+    }
+
+    .due-badge.soon {
+      background: #fb923c;
+      color: #fff;
+    }
+
+    /* ================= Google 行事曆 & 待辦事項 ================= */
+    .cal-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .cal-form-grid input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1.5px solid #bae6fd;
+      border-radius: 10px;
+      font-size: 0.8rem;
+    }
+
+    .cal-full {
+      grid-column: 1 / -1;
+    }
+
+    .gcal-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #0ea5e9, #10b981);
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-weight: 900;
+      font-size: 0.84rem;
+      cursor: pointer;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 10px rgba(14, 165, 233, 0.25);
+    }
+
+    .gcal-btn:hover {
+      filter: brightness(1.06);
+    }
+
+    .next3days-box {
+      background: #ecfdf5;
+      border: 2px solid #6ee7b7;
+      border-radius: 14px;
+      padding: 9px 10px;
+      margin-bottom: 10px;
+    }
+
+    .next3days-title {
+      font-size: 0.8rem;
+      font-weight: 900;
+      color: #065f46;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .upcoming-list {
+      max-height: 170px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      padding-right: 3px;
+    }
+
+    .event-item {
+      background: #f8fafc;
+      border-left: 4px solid #0ea5e9;
+      border-radius: 10px;
+      padding: 7px 9px;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .event-item.today {
+      background: #fef9c3;
+      border-left-color: #f97316;
+    }
+
+    .event-badge {
+      font-size: 0.7rem;
+      font-weight: 900;
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: #e0f2fe;
+      color: #0369a1;
+      white-space: nowrap;
+    }
+
+    .event-item.today .event-badge {
+      background: #f97316;
+      color: #fff;
+    }
+
+    /* 待辦事項模組 */
+    .todo-panel-card {
+      background: linear-gradient(180deg, #f5f3ff 0%, #ffffff 100%);
+      border: 2px solid #c4b5fd;
+    }
+
+    .todo-badge {
+      background: #ede9fe;
+      color: #5b21b6;
+      border: 1px solid #a78bfa;
+      padding: 1px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 900;
+    }
+
+    .todo-quick-add {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .todo-quick-add input {
+      flex: 1;
+      padding: 7px 10px;
+      border: 1.5px solid #ddd6fe;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      outline: none;
+    }
+
+    .todo-quick-add input:focus {
+      border-color: #8b5cf6;
+    }
+
+    .todo-list {
+      max-height: 240px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 3px;
+    }
+
+    .todo-item {
+      background: #ffffff;
+      border: 1.5px solid #ede9fe;
+      border-left: 4px solid #8b5cf6;
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-size: 0.82rem;
+    }
+
+    .todo-item.urgent {
+      background: #fff1f2;
+      border-left-color: #f43f5e;
+    }
+
+    .todo-item.completed {
+      opacity: 0.58;
+      border-left-color: #94a3b8;
+    }
+
+    .todo-item.completed .todo-text {
+      text-decoration: line-through;
+    }
+
+    .todo-text {
+      font-weight: 700;
+      color: #1e293b;
+      line-height: 1.4;
+      word-break: break-word;
+      margin-bottom: 5px;
+      white-space: pre-wrap;
+    }
+
+    .todo-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 0.72rem;
+      color: #64748b;
+    }
+
+    /* ================= 彈窗 Modal ================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #ffffff;
+      border-radius: 22px;
+      border: 3px solid #7dd3fc;
+      max-width: 760px;
+      width: 100%;
+      max-height: 86vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-pop);
+      overflow: hidden;
+    }
+
+    .modal-head {
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+      color: #ffffff;
+      padding: 13px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-head h3 {
+      font-size: 1.05rem;
+      font-weight: 900;
+    }
+
+    .modal-close {
+      background: rgba(255, 255, 255, 0.25);
+      border: none;
+      color: #fff;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 16px 18px;
+      overflow-y: auto;
+      font-size: 0.88rem;
+    }
+
+    .form-field {
+      margin-bottom: 11px;
+    }
+
+    .form-field label {
+      display: block;
+      font-weight: 800;
+      margin-bottom: 4px;
+      font-size: 0.84rem;
+      color: #0f172a;
+    }
+
+    .form-field input, .form-field select, .form-field textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1.5px solid #bae6fd;
+      border-radius: 10px;
+      font-size: 0.86rem;
+    }
+
+    .info-callout {
+      background: #f0f9ff;
+      border: 1.5px solid #7dd3fc;
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 0.81rem;
+      line-height: 1.6;
+      color: #0c4a6e;
+    }
+
+    table.log-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    table.log-table th, table.log-table td {
+      border-bottom: 1px solid #e2e8f0;
+      padding: 8px 6px;
+      text-align: left;
+    }
+
+    table.log-table th {
+      background: #f0f9ff;
+      font-weight: 900;
+      color: #0369a1;
+    }
+
+    /* Toast 提示氣泡 */
+    .toast-box {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #0f172a;
+      color: #fff;
+      padding: 11px 18px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 0.88rem;
+      box-shadow: var(--shadow-pop);
+      z-index: 2000;
+      transform: translateY(120px);
+      opacity: 0;
+      transition: all 0.28s ease;
+    }
+
+    .toast-box.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 頂部明亮動畫風狀態列 -->
+  <header class="desk-topbar">
+    <div class="nameplate">
+      <span class="nameplate-badge">☀️ 下班模式</span>
+      <div class="nameplate-title" id="deskOwnerTitle" title="點擊可修改桌牌名稱" onclick="editDeskTitle()">
+        <span>🌈 我的晴空下班書桌</span>
+        <span style="font-size:0.78rem; opacity:0.85;">✏️</span>
+      </div>
+    </div>
+
+    <div class="desk-widgets-bar">
+      <div class="clock-pill" id="liveClock">🕒 載入時間中...</div>
+      <div class="backup-pill" id="backupStatusPill">☁️ 本機已自動備份</div>
+      <button class="top-btn google-btn" id="googleConnectTopBtn" onclick="openModal('googleSettingsModal')">🔗 連結 Google 服務</button>
+      <button class="top-btn" onclick="openModal('worklogModal')">📚 所有紀錄</button>
+      <button class="top-btn" onclick="openModal('backupModal')">💾 雲端與逐日備份</button>
+    </div>
+  </header>
+
+  <!-- 滿版萬用速記輸入框（已刪除下班放鬆特調與療癒小多肉） -->
+  <section class="command-row">
+    <div class="smart-input-box">
+      <div class="smart-input-header">
+        <div class="smart-title">
+          <span>✍️ 下班書桌萬用速記條</span>
+          <span style="font-size:0.76rem; font-weight:700; color:#64748b;" id="modeHintText">（自動分類：待辦事項、繳費、還書、取件、行事曆或電話聯繫）</span>
+        </div>
+        <div class="mode-switch">
+          <button class="mode-btn active" id="btnAutoMode" onclick="setInputMode('auto')">✨ 自動智慧分類</button>
+          <button class="mode-btn" id="btnManualMode" onclick="setInputMode('manual')">☑️ 手動勾選分類</button>
+        </div>
+      </div>
+
+      <div class="input-main-line">
+        <input
+          type="text"
+          id="smartInput"
+          placeholder="例如：「明天前繳信用卡費」、「週五圖書館還書」、「7-11取件蝦皮包裹」、「明天晚上7點聚餐」..."
+          oninput="previewAutoClassify()"
+          onkeydown="if(event.key==='Enter') handleSmartSubmit()"
+        />
+        <button class="submit-task-btn" onclick="handleSmartSubmit()">📌 貼上書桌</button>
+      </div>
+
+      <div class="input-options-bar">
+        <div class="checkbox-group" id="categoryCheckboxes">
+          <label class="cat-check" id="lbl-todo"><input type="checkbox" value="todo" onchange="onManualCheckChange()" /> ✅ 待辦事項</label>
+          <label class="cat-check" id="lbl-bill"><input type="checkbox" value="bill" onchange="onManualCheckChange()" /> 💳 繳費通知</label>
+          <label class="cat-check" id="lbl-book"><input type="checkbox" value="book" onchange="onManualCheckChange()" /> 📚 還書通知</label>
+          <label class="cat-check" id="lbl-pickup"><input type="checkbox" value="pickup" onchange="onManualCheckChange()" /> 📦 取件通知</label>
+          <label class="cat-check" id="lbl-cal"><input type="checkbox" value="cal" onchange="onManualCheckChange()" /> 📅 行事曆</label>
+          <label class="cat-check" id="lbl-phone"><input type="checkbox" value="phone" onchange="onManualCheckChange()" /> 📞 電話聯繫</label>
+        </div>
+
+        <div class="extra-meta-inputs">
+          <label style="font-weight:800; color:#e11d48; cursor:pointer;">
+            <input type="checkbox" id="urgentCheck" /> 🔥 重要
+          </label>
+          <input type="datetime-local" id="taskDateTime" title="選填到期日或活動時間" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 主書桌工作區 -->
+  <main class="desk-workspace">
+
+    <!-- 左欄：常用網頁與捷徑 + LINE 訊息通知 -->
+    <div class="desk-column">
+      <section class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title">🚀 常用網頁與捷徑</div>
+          <button class="mini-btn" onclick="openModal('addAppModal')">➕ 新增</button>
+        </div>
+        <div class="apps-grid" id="appsGrid"></div>
+        <div style="margin-top:9px; font-size:0.72rem; color:#64748b; line-height:1.45;">
+          💡 所有網頁捷徑點擊時會<strong>自動另開新分頁</strong>，可隨時點擊右上角「➕ 新增」擴充。
+        </div>
+      </section>
+
+      <!-- LINE 訊息通知模組 -->
+      <section class="panel-card line-card">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>💬 LINE 訊息通知</span>
+            <span class="line-badge" id="lineUnreadBadge">0</span>
+          </div>
+          <div style="display:flex; gap:4px;">
+            <button class="mini-btn" onclick="pollLineMessages(true)" title="立即檢查新訊息">🔄</button>
+            <button class="mini-btn" onclick="openModal('lineSettingsModal')">⚙️ 設定</button>
+          </div>
+        </div>
+        <div class="line-status-bar">
+          <span id="lineStatusText">⚪ 尚未連結中繼端點</span>
+          <button class="s-btn" onclick="sendTestLineNotif()">🔔 測試通知</button>
+        </div>
+        <div class="line-msg-list" id="lineMsgList"></div>
+      </section>
+    </div>
+
+    <!-- 中欄：明亮動畫風便利貼牆 + Gmail 近期郵件 -->
+    <div class="desk-column">
+      <div class="board-frame">
+        <div class="board-screen">
+          <div class="sticky-tabs">
+            <div class="tab-pills" id="stickyFilterTabs">
+              <button class="tab-pill active" data-filter="all" onclick="setStickyFilter('all')">🌤️ 全部看板 (<span id="cnt-all">0</span>)</button>
+              <button class="tab-pill" data-filter="todo" onclick="setStickyFilter('todo')">✅ 待辦 (<span id="cnt-todo">0</span>)</button>
+              <button class="tab-pill" data-filter="life" onclick="setStickyFilter('life')">🔔 繳費/還書/取件 (<span id="cnt-life">0</span>)</button>
+              <button class="tab-pill" data-filter="cal" onclick="setStickyFilter('cal')">📅 行事曆 (<span id="cnt-cal">0</span>)</button>
+              <button class="tab-pill" data-filter="phone" onclick="setStickyFilter('phone')">📞 電話 (<span id="cnt-phone">0</span>)</button>
+            </div>
+            <label style="font-size:0.76rem; font-weight:800; color:#475569; cursor:pointer;">
+              <input type="checkbox" id="showCompletedToggle" onchange="renderStickyNotes()" /> 顯示已完成
+            </label>
+          </div>
+
+          <div class="sticky-notes-grid" id="stickyNotesGrid"></div>
+        </div>
+      </div>
+
+      <!-- Gmail 近期郵件模組 -->
+      <section class="panel-card gmail-card">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>📧 Gmail 近期郵件</span>
+            <span class="count-pill" id="gmailCountPill">未連線</span>
+          </div>
+          <div style="display:flex; gap:5px; flex-wrap:wrap;">
+            <button class="mini-btn" onclick="scanGmailForLifeAlerts()" title="從近期郵件自動偵測繳費、還書、取件通知">🔍 掃描通知</button>
+            <button class="mini-btn" onclick="fetchGmailMessages(true)">🔄 重新整理</button>
+            <button class="mini-btn" onclick="window.open('https://mail.google.com/','_blank','noopener')">開啟 Gmail ↗</button>
+          </div>
+        </div>
+        <div class="gmail-list" id="gmailList"></div>
+      </section>
+    </div>
+
+    <!-- 右欄：生活通知（繳費/還書/取件） + Google 行事曆（後3天） + 待辦事項 -->
+    <div class="desk-column">
+      <!-- 生活通知中心 -->
+      <section class="panel-card life-alert-card">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>🔔 繳費・還書・取件通知</span>
+            <span class="count-pill" style="background:#fef3c7; color:#b45309;" id="lifeCountBadge">0</span>
+          </div>
+        </div>
+
+        <div class="life-tabs" id="lifeFilterTabs">
+          <button class="life-tab-btn active" data-ltype="all" onclick="setLifeFilter('all')">全部</button>
+          <button class="life-tab-btn" data-ltype="bill" onclick="setLifeFilter('bill')">💳 繳費</button>
+          <button class="life-tab-btn" data-ltype="book" onclick="setLifeFilter('book')">📚 還書</button>
+          <button class="life-tab-btn" data-ltype="pickup" onclick="setLifeFilter('pickup')">📦 取件</button>
+        </div>
+
+        <div class="life-add-grid">
+          <select id="lifeTypeSelect">
+            <option value="bill">💳 繳費</option>
+            <option value="book">📚 還書</option>
+            <option value="pickup">📦 取件</option>
+          </select>
+          <input type="text" id="lifeTitleInput" placeholder="項目名稱（例：玉山卡費 / 左新分館還書）" onkeydown="if(event.key==='Enter') quickAddLifeAlert()" />
+        </div>
+        <div class="life-add-row2">
+          <input type="date" id="lifeDueDateInput" title="到期日 / 取件期限" />
+          <button class="mini-btn" style="background:#f59e0b; color:#fff; border-color:#f59e0b; padding:6px 12px;" onclick="quickAddLifeAlert()">➕ 新增通知</button>
+        </div>
+
+        <div class="life-list" id="lifeAlertList"></div>
+      </section>
+
+      <!-- Google 行事曆模組 -->
+      <section class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title">📅 Google 行事曆</div>
+          <div style="display:flex; gap:4px;">
+            <button class="mini-btn" onclick="fetchGoogleCalendarEvents(true)" title="從 Google 行事曆同步最新行程">🔄 同步</button>
+            <button class="mini-btn" onclick="document.getElementById('icsFileInput').click()" title="匯入 .ics 檔">📥 .ics</button>
+            <button class="mini-btn" onclick="window.open('https://calendar.google.com','_blank','noopener')">↗</button>
+          </div>
+          <input type="file" id="icsFileInput" accept=".ics,.ical,.ifb,.vcs" style="display:none;" onchange="importGoogleCalendarICS(event)" />
+        </div>
+
+        <!-- 後 3 天行程專區 -->
+        <div class="next3days-box">
+          <div class="next3days-title">
+            <span>🗓️ 後 3 天行程</span>
+            <span id="next3DaysRangeText"></span>
+          </div>
+          <div class="upcoming-list" id="next3DaysEventsList" style="max-height:150px;"></div>
+        </div>
+
+        <div class="cal-form-grid">
+          <input type="text" id="calTitle" class="cal-full" placeholder="快速新增行程 (例：聚餐 / 運動 / 出遊)" />
+          <input type="date" id="calDate" />
+          <input type="time" id="calTime" value="19:00" />
+          <input type="text" id="calLocation" class="cal-full" placeholder="地點 (選填)" />
+        </div>
+        <button class="gcal-btn" onclick="createCalendarEvent()">➕ 建立活動並同步 Google 行事曆</button>
+
+        <div style="font-size:0.78rem; font-weight:800; color:#475569; margin-bottom:6px; display:flex; justify-content:space-between;">
+          <span>📌 所有後續排程</span>
+          <span id="upcomingCount">0 筆</span>
+        </div>
+        <div class="upcoming-list" id="upcomingEventsList" style="max-height:130px;"></div>
+      </section>
+
+      <!-- 待辦事項模組 -->
+      <section class="panel-card todo-panel-card">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>✅ 待辦事項</span>
+            <span class="todo-badge" id="todoCountBadge">0</span>
+          </div>
+          <label style="font-size:0.74rem; font-weight:800; color:#5b21b6; cursor:pointer;">
+            <input type="checkbox" id="todoShowDoneToggle" onchange="renderTodoPanel()" /> 含已完成
+          </label>
+        </div>
+
+        <div class="todo-quick-add">
+          <input
+            type="text"
+            id="quickTodoInput"
+            placeholder="快速新增一筆待辦事項..."
+            onkeydown="if(event.key==='Enter') quickAddTodo()"
+          />
+          <button class="mini-btn" style="background:#8b5cf6; color:#fff; border-color:#8b5cf6;" onclick="quickAddTodo()">➕ 新增</button>
+        </div>
+
+        <div class="todo-list" id="todoPanelList"></div>
+      </section>
+    </div>
+
+  </main>
+
+  <!-- ================= Modal 1：Google 服務整合設定（Gmail / 日曆 / 雲端硬碟備份） ================= -->
+  <div class="modal-backdrop" id="googleSettingsModal">
+    <div class="modal-box" style="max-width:560px;">
+      <div class="modal-head">
+        <h3>🔗 連結 Google 服務（Gmail・行事曆・雲端自動備份）</h3>
+        <button class="modal-close" onclick="closeModal('googleSettingsModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="info-callout">
+          <strong>一次授權即可啟用 3 項功能：</strong><br />
+          1. 📧 <strong>Gmail 近期郵件</strong>即時顯示，並支援自動掃描「繳費、還書、取件」信件。<br />
+          2. 📅 <strong>Google 行事曆</strong>自動擷取後 3 天與近期行程。<br />
+          3. ☁️ <strong>Google 雲端硬碟自動備份</strong>：每次變更自動同步備份檔 <code>AfterWorkDesk_Backup.json</code> 至您的雲端硬碟。<br />
+          <span style="color:#b45309;">⚠️ 提示：Google OAuth 需在 <code>http://localhost</code> 或 <code>https://您的網域</code>（如 GitHub Pages）開啟，並將該網址加入 Google Cloud「已授權的 JavaScript 來源」。</span>
+        </div>
+
+        <div class="form-field">
+          <label>Google Cloud OAuth 2.0 用戶端 ID (Client ID)</label>
+          <input type="text" id="googleClientIdInput" placeholder="例如：1234567890-xxxx.apps.googleusercontent.com" />
+        </div>
+
+        <div class="form-field" style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="googleAutoBackupCheck" style="width:auto;" />
+          <label for="googleAutoBackupCheck" style="margin:0; cursor:pointer;">資料異動時自動備份至 Google 雲端硬碟</label>
+        </div>
+
+        <div id="googleAuthStatusBox" style="margin-bottom:12px; font-weight:800; color:#0369a1;">
+          目前狀態：尚未授權連線
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+          <button class="gcal-btn" style="flex:1; margin-bottom:0;" onclick="saveAndConnectGoogle()">🚀 儲存並立即授權登入 Google</button>
+          <button class="top-btn" onclick="syncAllGoogleServices()" id="btnManualSyncGoogle">🔄 立即同步全部</button>
+          <button class="top-btn" style="color:#dc2626;" onclick="disconnectGoogle()">🚪 登出</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Modal 2：LINE 訊息通知設定 ================= -->
+  <div class="modal-backdrop" id="lineSettingsModal">
+    <div class="modal-box" style="max-width:600px;">
+      <div class="modal-head" style="background:linear-gradient(135deg,#06c755,#10b981);">
+        <h3>💬 LINE 訊息通知連結設定</h3>
+        <button class="modal-close" onclick="closeModal('lineSettingsModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="info-callout" style="background:#f0fdf4; border-color:#86efac; color:#14532d;">
+          <strong>運作方式：</strong>瀏覽器網頁無法直接讀取 LINE App 本機聊天室，但只要將您的 <strong>LINE Messaging API Webhook</strong> 接到免費的 <strong>Google Apps Script (GAS)</strong>，再將 GAS 網址貼在下方，書桌就會定時輪詢並在收到新 LINE 訊息時跳出<strong>桌面通知與音效提醒</strong>！
+        </div>
+
+        <div class="form-field">
+          <label>LINE 訊息中繼 API 網址（Google Apps Script Web App URL，回傳 JSON 陣列）</label>
+          <input type="text" id="lineWebhookUrlInput" placeholder="https://script.google.com/macros/s/xxxxx/exec" />
+        </div>
+
+        <div class="form-field">
+          <label>自動檢查間隔（秒）</label>
+          <input type="number" id="linePollIntervalInput" min="15" max="600" value="60" />
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+          <button class="gcal-btn" style="flex:1; margin-bottom:0; background:#06c755;" onclick="saveLineSettings()">✅ 儲存並開始監聽 LINE 訊息</button>
+          <button class="top-btn" onclick="requestBrowserNotifPermission()">🔔 開啟瀏覽器通知權限</button>
+          <button class="top-btn" onclick="copyLineGasTemplate()">📋 複製 GAS 接收端範例碼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Modal 3：新增常用網頁捷徑 ================= -->
+  <div class="modal-backdrop" id="addAppModal">
+    <div class="modal-box" style="max-width:460px;">
+      <div class="modal-head">
+        <h3>➕ 新增常用網頁或捷徑</h3>
+        <button class="modal-close" onclick="closeModal('addAppModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field">
+          <label>網站 / 應用程式名稱</label>
+          <input type="text" id="newAppName" placeholder="例如：股市看盤、旅遊筆記、音樂平台..." />
+        </div>
+        <div class="form-field">
+          <label>網址（點擊時自動另開新分頁）</label>
+          <input type="text" id="newAppUrl" placeholder="例如：https://www.google.com" />
+        </div>
+        <div class="form-field">
+          <label>選擇代表小圖示 (Emoji)</label>
+          <select id="newAppIcon">
+            <option value="🌐">🌐 網頁</option>
+            <option value="📈">📈 股市 / 投資</option>
+            <option value="🗺️">🗺️ 地圖 / 旅遊</option>
+            <option value="📺">📺 影音 / 娛樂</option>
+            <option value="📓">📓 筆記 / 學習</option>
+            <option value="☁️">☁️ 雲端 / 工具</option>
+            <option value="📧">📧 信箱 / 通訊</option>
+            <option value="🗂️">🗂️ 檔案 / 整理</option>
+          </select>
+        </div>
+        <button class="gcal-btn" onclick="saveNewAppShortcut()">✅ 儲存並加到書桌</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Modal 4：所有紀錄櫃 ================= -->
+  <div class="modal-backdrop" id="worklogModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3>📚 所有紀錄總覽（含待辦、繳費、還書、取件）</h3>
+        <button class="modal-close" onclick="closeModal('worklogModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; margin-bottom:12px;">
+          <input type="text" id="logSearchInput" placeholder="搜尋紀錄關鍵字或日期..." oninput="renderWorkLogTable()" style="flex:1; padding:7px 10px; border:1.5px solid #bae6fd; border-radius:10px;" />
+          <button class="top-btn" onclick="exportWorkLogCSV()">📥 匯出 CSV 報表</button>
+        </div>
+        <div id="workLogStats" style="margin-bottom:10px; font-weight:800; color:#0284c7;"></div>
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>建立日期</th>
+              <th>分類</th>
+              <th>內容</th>
+              <th>狀態</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="workLogTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Modal 5：Google 雲端硬碟與逐日備份中心 ================= -->
+  <div class="modal-backdrop" id="backupModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3>💾 Google 雲端硬碟與逐日備份中心</h3>
+        <button class="modal-close" onclick="closeModal('backupModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="info-callout">
+          <strong>☁️ Google 雲端硬碟備份狀態：</strong> <span id="driveBackupDetailText">尚未連結 Google 帳號（請點上方「連結 Google 服務」）</span>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+            <button class="top-btn" onclick="backupToGoogleDrive(true)">☁️ 立即備份至 Google 雲端硬碟</button>
+            <button class="top-btn" onclick="restoreFromGoogleDrive()">☁️ 從 Google 雲端硬碟還原</button>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; align-items:center;">
+          <button class="top-btn" onclick="downloadBackupJSON(todayStr())">⬇️ 下載今日備份檔 (.json)</button>
+          <button class="top-btn" onclick="document.getElementById('restoreJsonInput').click()">⬆️ 匯入本機備份檔</button>
+          <input type="file" id="restoreJsonInput" accept=".json" style="display:none;" onchange="restoreFromFile(event)" />
+          <label style="font-size:0.82rem; font-weight:800; margin-left:auto; cursor:pointer;">
+            <input type="checkbox" id="autoDownloadDailyToggle" onchange="toggleAutoDownloadSetting()" /> 每日首次開啟自動下載 JSON
+          </label>
+        </div>
+
+        <h4 style="margin-bottom:8px;">📅 本機歷史逐日備份快照</h4>
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>備份日期</th>
+              <th>備份時間</th>
+              <th>紀錄筆數</th>
+              <th>行事曆活動數</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="dailyBackupsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 提示氣泡 -->
+  <div class="toast-box" id="toastBox"></div>
+
+  <script>
+    /* ================= 1. 預設資料與 12 個常用網頁捷徑 ================= */
+    const STORAGE_KEY = 'after_work_desk_v2';
+    const BACKUP_PREFIX = 'after_work_desk_v2_backup_';
+    const DRIVE_BACKUP_FILENAME = 'AfterWorkDesk_AutoBackup.json';
+
+    const DEFAULT_APPS = [
+      { id: 'app_youtube', name: 'YouTube', url: 'https://www.youtube.com/', icon: '▶️', color: '#fecaca', builtin: true },
+      { id: 'app_gmap', name: 'Google Map', url: 'https://maps.google.com/', icon: '🗺️', color: '#bbf7d0', builtin: true },
+      { id: 'app_gmail', name: 'Gmail', url: 'https://mail.google.com/', icon: '📧', color: '#fee2e2', builtin: true },
+      { id: 'app_gdrive', name: '雲端硬碟', url: 'https://drive.google.com/', icon: '☁️', color: '#dbeafe', builtin: true },
+      { id: 'app_notebook', name: 'Notebook', url: 'https://notebooklm.google.com/', icon: '📓', color: '#ede9fe', builtin: true },
+      { id: 'app_explorer', name: '檔案管理員', url: 'file:///', icon: '📁', color: '#bfdbfe', builtin: true, special: 'explorer' },
+      { id: 'app_wantgoo', name: '玩股網', url: 'https://www.wantgoo.com/', icon: '📈', color: '#fde68a', builtin: true },
+      {
+        id: 'app_goodinfo',
+        name: '突破季線',
+        url: 'https://goodinfo.tw/tw/StockList.asp?SHEET=%E5%9D%87%E7%B7%9A%E4%BD%8D%E7%BD%AE&MARKET_CAT=%E6%99%BA%E6%85%A7%E9%81%B8%E8%82%A1&INDUSTRY_CAT=%E8%82%A1%E5%83%B9%E7%AA%81%E7%A0%B4%E5%AD%A3%E7%B7%9A',
+        icon: '🔍',
+        color: '#fed7aa',
+        builtin: true
+      },
+      {
+        id: 'app_fubon',
+        name: '富邦分點',
+        url: 'https://fubon-ebrokerdj.fbs.com.tw/z/zg/zgb/zgb0.djhtm?a=9200&b=9268&c=B&e=2026-4-8&f=2026-4-8',
+        icon: '🏦',
+        color: '#bae6fd',
+        builtin: true
+      },
+      { id: 'app_invest', name: '投資平台', url: 'https://cancri1823.github.io/invest/', icon: '💹', color: '#d9f99d', builtin: true },
+      { id: 'app_stock', name: '股市分析', url: 'https://cancri1823.github.io/stock/', icon: '📊', color: '#fbcfe8', builtin: true },
+      { id: 'app_track', name: '軌跡管理', url: 'https://cancri1823.github.io/track-manager/', icon: '🧭', color: '#a7f3d0', builtin: true }
+    ];
+
+    /* ================= 2. 狀態管理 ================= */
+    let deskState = {
+      deskTitle: '🌈 我的晴空下班書桌',
+      autoDownloadDaily: false,
+      googleClientId: '',
+      googleAutoBackup: true,
+      lastDriveSync: '',
+      lineWebhookUrl: '',
+      linePollInterval: 60,
+      lineMessages: [],
+      apps: [...DEFAULT_APPS],
+      tasks: [],
+      events: []
+    };
+
+    let inputMode = 'auto';
+    let currentStickyFilter = 'all';
+    let currentLifeFilter = 'all';
+
+    // Google OAuth 執行期狀態
+    let googleAccessToken = '';
+    let googleTokenClient = null;
+    let gmailCache = [];
+    let gcalCache = [];
+    let driveBackupTimer = null;
+    let linePollTimer = null;
+
+    function todayStr() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function offsetDateStr(daysOffset) {
+      const d = new Date();
+      d.setDate(d.getDate() + daysOffset);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function nowTimeStr() {
+      const d = new Date();
+      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          deskState = { ...deskState, ...parsed };
+          if (!Array.isArray(deskState.apps) || deskState.apps.length === 0) deskState.apps = [...DEFAULT_APPS];
+          if (!Array.isArray(deskState.tasks)) deskState.tasks = [];
+          if (!Array.isArray(deskState.events)) deskState.events = [];
+          if (!Array.isArray(deskState.lineMessages)) deskState.lineMessages = [];
+        } else {
+          const td = todayStr();
+          const plus2 = offsetDateStr(2);
+          deskState.tasks = [
+            {
+              id: 't_demo_bill',
+              text: '繳納本月信用卡與電信帳單',
+              category: 'bill',
+              urgent: false,
+              date: plus2,
+              time: '',
+              completed: false,
+              createdAt: `${td} 18:10`
+            },
+            {
+              id: 't_demo_book',
+              text: '高雄市立圖書館還書提醒',
+              category: 'book',
+              urgent: false,
+              date: offsetDateStr(3),
+              time: '',
+              completed: false,
+              createdAt: `${td} 18:15`
+            },
+            {
+              id: 't_demo_pickup',
+              text: '7-11 超商取件包裹',
+              category: 'pickup',
+              urgent: true,
+              date: td,
+              time: '',
+              completed: false,
+              createdAt: `${td} 18:20`
+            },
+            {
+              id: 't_demo_todo',
+              text: '盤後整理自選股籌碼與週末出遊軌跡',
+              category: 'todo',
+              urgent: false,
+              date: td,
+              time: '20:00',
+              completed: false,
+              createdAt: `${td} 18:30`
+            }
+          ];
+          saveState(false);
+        }
+      } catch (e) {
+        console.error('Load state error:', e);
+      }
+    }
+
+    function saveState(triggerBackup = true) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(deskState));
+      if (triggerBackup) {
+        performDailyBackup(false);
+        scheduleGoogleDriveAutoBackup();
+      }
+    }
+
+    /* ================= 3. Google OAuth 統一授權（Gmail / 行事曆 / Drive 自動備份） ================= */
+    const GOOGLE_SCOPES = [
+      'https://www.googleapis.com/auth/gmail.readonly',
+      'https://www.googleapis.com/auth/calendar.readonly',
+      'https://www.googleapis.com/auth/calendar.events',
+      'https://www.googleapis.com/auth/drive.file'
+    ].join(' ');
+
+    function saveAndConnectGoogle() {
+      const cid = document.getElementById('googleClientIdInput').value.trim();
+      deskState.googleAutoBackup = document.getElementById('googleAutoBackupCheck').checked;
+      if (!cid) {
+        showToast('⚠️ 請輸入您的 Google Cloud OAuth Client ID！');
+        return;
+      }
+      deskState.googleClientId = cid;
+      saveState(false);
+
+      if (!window.google || !google.accounts || !google.accounts.oauth2) {
+        showToast('⚠️ Google 授權元件尚未載入，請確認網路連線後重試');
+        return;
+      }
+
+      googleTokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: cid,
+        scope: GOOGLE_SCOPES,
+        callback: (tokenResponse) => {
+          if (tokenResponse.error) {
+            showToast('❌ Google 授權失敗：' + tokenResponse.error);
+            return;
+          }
+          googleAccessToken = tokenResponse.access_token;
+          updateGoogleConnectionUI(true);
+          closeModal('googleSettingsModal');
+          showToast('🎉 已成功連結 Google（Gmail・行事曆・雲端自動備份）！');
+          syncAllGoogleServices();
+        }
+      });
+
+      googleTokenClient.requestAccessToken({ prompt: 'consent' });
+    }
+
+    function disconnectGoogle() {
+      if (googleAccessToken && window.google?.accounts?.oauth2) {
+        google.accounts.oauth2.revoke(googleAccessToken, () => {});
+      }
+      googleAccessToken = '';
+      gmailCache = [];
+      gcalCache = [];
+      updateGoogleConnectionUI(false);
+      renderGmailList();
+      renderUpcomingEvents();
+      showToast('🚪 已登出 Google 帳號');
+    }
+
+    function updateGoogleConnectionUI(isConnected) {
+      const btn = document.getElementById('googleConnectTopBtn');
+      const statusBox = document.getElementById('googleAuthStatusBox');
+      const driveTxt = document.getElementById('driveBackupDetailText');
+      if (isConnected) {
+        btn.classList.add('connected');
+        btn.textContent = '✅ Google 已連線';
+        if (statusBox) statusBox.textContent = '目前狀態：✅ 已授權連線（Gmail / 日曆 / 雲端備份啟用中）';
+        if (driveTxt) driveTxt.textContent = deskState.lastDriveSync ? `已連線｜上次同步：${deskState.lastDriveSync}` : '已連線｜準備自動備份';
+      } else {
+        btn.classList.remove('connected');
+        btn.textContent = '🔗 連結 Google 服務';
+        if (statusBox) statusBox.textContent = '目前狀態：尚未授權連線';
+        if (driveTxt) driveTxt.textContent = '尚未連結 Google 帳號（請點上方「連結 Google 服務」）';
+      }
+    }
+
+    async function syncAllGoogleServices() {
+      if (!googleAccessToken) {
+        openModal('googleSettingsModal');
+        return;
+      }
+      await Promise.all([
+        fetchGmailMessages(false),
+        fetchGoogleCalendarEvents(false)
+      ]);
+      if (deskState.googleAutoBackup) {
+        await backupToGoogleDrive(false);
+      }
+    }
+
+    /* ================= 4. Gmail 近期郵件擷取與生活通知掃描 ================= */
+    async function fetchGmailMessages(showFeedback = false) {
+      if (!googleAccessToken) {
+        if (showFeedback) {
+          showToast('ℹ️ 請先點上方「連結 Google 服務」授權讀取 Gmail');
+          openModal('googleSettingsModal');
+        }
+        renderGmailList();
+        return;
+      }
+      try {
+        document.getElementById('gmailCountPill').textContent = '讀取中...';
+        const listRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=10&q=in:inbox', {
+          headers: { Authorization: `Bearer ${googleAccessToken}` }
+        });
+        if (!listRes.ok) throw new Error('Gmail API 讀取失敗');
+        const listData = await listRes.json();
+        const messages = listData.messages || [];
+
+        const details = await Promise.all(
+          messages.map(async (m) => {
+            const res = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`, {
+              headers: { Authorization: `Bearer ${googleAccessToken}` }
+            });
+            const d = await res.json();
+            const headers = d.payload?.headers || [];
+            const getH = (name) => (headers.find(h => h.name.toLowerCase() === name.toLowerCase())?.value || '');
+            return {
+              id: d.id,
+              subject: getH('Subject') || '(無主旨)',
+              from: getH('From').replace(/<[^>]+>/g, '').replace(/"/g, '').trim(),
+              date: formatShortEmailDate(getH('Date')),
+              snippet: d.snippet || '',
+              unread: (d.labelIds || []).includes('UNREAD')
+            };
+          })
+        );
+
+        gmailCache = details;
+        renderGmailList();
+        if (showFeedback) showToast(`📧 已更新 ${details.length} 封近期 Gmail 郵件`);
+      } catch (err) {
+        console.error(err);
+        document.getElementById('gmailCountPill').textContent = '讀取失敗';
+        if (showFeedback) showToast('❌ 讀取 Gmail 失敗，請重新授權連線');
+      }
+    }
+
+    function formatShortEmailDate(rawDate) {
+      try {
+        const d = new Date(rawDate);
+        if (isNaN(d.getTime())) return '';
+        return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      } catch {
+        return '';
+      }
+    }
+
+    function renderGmailList() {
+      const container = document.getElementById('gmailList');
+      const pill = document.getElementById('gmailCountPill');
+
+      if (!googleAccessToken) {
+        pill.textContent = '未連線';
+        container.innerHTML = `
+          <div style="text-align:center; padding:20px 10px; color:#64748b; font-size:0.82rem;">
+            <div style="font-size:1.8rem; margin-bottom:6px;">📬</div>
+            尚未連結 Gmail，點擊上方 <strong>「🔗 連結 Google 服務」</strong> 即可直接在此顯示近期郵件，並自動掃描繳費、還書與取件通知。
+          </div>
+        `;
+        return;
+      }
+
+      const unreadCount = gmailCache.filter(m => m.unread).length;
+      pill.textContent = unreadCount > 0 ? `${unreadCount} 封未讀` : `${gmailCache.length} 封近期`;
+
+      if (gmailCache.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:18px; color:#94a3b8; font-size:0.82rem;">收件匣目前沒有近期郵件</div>`;
+        return;
+      }
+
+      container.innerHTML = gmailCache.map(m => `
+        <a class="gmail-item ${m.unread ? 'unread' : ''}" href="https://mail.google.com/mail/u/0/#inbox/${encodeURIComponent(m.id)}" target="_blank" rel="noopener noreferrer">
+          <div class="gmail-top">
+            <span>${m.unread ? '🔴 ' : ''}${escapeHtml(m.from)}</span>
+            <span>${escapeHtml(m.date)}</span>
+          </div>
+          <div class="gmail-subject">${escapeHtml(m.subject)}</div>
+          <div class="gmail-snippet">${escapeHtml(m.snippet)}</div>
+        </a>
+      `).join('');
+    }
+
+    function scanGmailForLifeAlerts() {
+      if (!googleAccessToken || gmailCache.length === 0) {
+        showToast('ℹ️ 請先連結並讀取 Gmail 近期郵件後再掃描');
+        return;
+      }
+      let added = 0;
+      const existingTexts = new Set(deskState.tasks.map(t => t.text));
+
+      gmailCache.forEach((m, idx) => {
+        const combined = `${m.subject} ${m.snippet}`;
+        let cat = '';
+        if (/繳費|帳單|電子帳單|應繳|信用卡|水費|電費|電信費|扣款/.test(combined)) cat = 'bill';
+        else if (/還書|圖書館|借閱|預約書|到期通知/.test(combined)) cat = 'book';
+        else if (/取件|取貨|到店|包裹|已送達|超商|蝦皮|物流/.test(combined)) cat = 'pickup';
+
+        if (cat) {
+          const title = `[Gmail] ${m.subject}`;
+          if (!existingTexts.has(title)) {
+            deskState.tasks.unshift({
+              id: `gmail_life_${Date.now()}_${idx}`,
+              text: title,
+              category: cat,
+              urgent: true,
+              date: offsetDateStr(2),
+              time: '',
+              completed: false,
+              createdAt: `${todayStr()} ${nowTimeStr()}`
+            });
+            existingTexts.add(title);
+            added++;
+          }
+        }
+      });
+
+      if (added > 0) {
+        saveState(true);
+        refreshAllUI();
+        showToast(`🔍 已從 Gmail 自動新增 ${added} 筆繳費/還書/取件通知！`);
+      } else {
+        showToast('✨ 近期郵件中沒有新的繳費、還書或取件通知');
+      }
+    }
+
+    /* ================= 5. Google 行事曆 API 擷取（後 3 天行程） ================= */
+    async function fetchGoogleCalendarEvents(showFeedback = false) {
+      if (!googleAccessToken) {
+        if (showFeedback) {
+          showToast('ℹ️ 請先點上方「連結 Google 服務」同步 Google 行事曆');
+          openModal('googleSettingsModal');
+        }
+        return;
+      }
+      try {
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(start);
+        end.setDate(end.getDate() + 14);
+
+        const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?singleEvents=true&orderBy=startTime&timeMin=${encodeURIComponent(start.toISOString())}&timeMax=${encodeURIComponent(end.toISOString())}&maxResults=40`;
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${googleAccessToken}` } });
+        if (!res.ok) throw new Error('Calendar API 錯誤');
+        const data = await res.json();
+
+        gcalCache = (data.items || []).map(item => {
+          const rawStart = item.start?.dateTime || item.start?.date || '';
+          const datePart = rawStart.slice(0, 10);
+          const timePart = rawStart.includes('T') ? rawStart.slice(11, 16) : '全天';
+          return {
+            id: `gcal_${item.id}`,
+            title: item.summary || '(無標題活動)',
+            date: datePart,
+            time: timePart,
+            location: item.location || '',
+            source: 'google',
+            htmlLink: item.htmlLink || 'https://calendar.google.com'
+          };
+        });
+
+        renderUpcomingEvents();
+        if (showFeedback) showToast(`📅 已同步 Google 行事曆 ${gcalCache.length} 筆近期行程！`);
+      } catch (err) {
+        console.error(err);
+        if (showFeedback) showToast('❌ 同步 Google 行事曆失敗');
+      }
+    }
+
+    /* ================= 6. Google 雲端硬碟自動備份與還原 ================= */
+    function scheduleGoogleDriveAutoBackup() {
+      if (!googleAccessToken || !deskState.googleAutoBackup) return;
+      clearTimeout(driveBackupTimer);
+      driveBackupTimer = setTimeout(() => {
+        backupToGoogleDrive(false);
+      }, 3500);
+    }
+
+    async function findDriveBackupFileId() {
+      const q = encodeURIComponent(`name='${DRIVE_BACKUP_FILENAME}' and trashed=false`);
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime)`, {
+        headers: { Authorization: `Bearer ${googleAccessToken}` }
+      });
+      if (!res.ok) throw new Error('查詢雲端硬碟失敗');
+      const data = await res.json();
+      return data.files && data.files.length > 0 ? data.files[0].id : null;
+    }
+
+    async function backupToGoogleDrive(showFeedback = true) {
+      if (!googleAccessToken) {
+        if (showFeedback) {
+          showToast('ℹ️ 請先連結 Google 服務才能備份至雲端硬碟');
+          openModal('googleSettingsModal');
+        }
+        return;
+      }
+      try {
+        const pill = document.getElementById('backupStatusPill');
+        if (pill) pill.textContent = '☁️ 雲端同步中...';
+
+        const existingId = await findDriveBackupFileId();
+        const payload = JSON.stringify({
+          backupDate: todayStr(),
+          backupTime: `${todayStr()} ${nowTimeStr()}`,
+          data: deskState
+        }, null, 2);
+
+        const metadata = { name: DRIVE_BACKUP_FILENAME, mimeType: 'application/json' };
+        const boundary = '-------AfterWorkDeskBoundary314159';
+        const body =
+          `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n` +
+          `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${payload}\r\n` +
+          `--${boundary}--`;
+
+        const uploadUrl = existingId
+          ? `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`
+          : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
+
+        const res = await fetch(uploadUrl, {
+          method: existingId ? 'PATCH' : 'POST',
+          headers: {
+            Authorization: `Bearer ${googleAccessToken}`,
+            'Content-Type': `multipart/related; boundary=${boundary}`
+          },
+          body
+        });
+
+        if (!res.ok) throw new Error('上傳雲端硬碟失敗');
+        deskState.lastDriveSync = `${todayStr()} ${nowTimeStr()}`;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(deskState));
+
+        if (pill) pill.textContent = `☁️ 雲端已備份 ${nowTimeStr()}`;
+        updateGoogleConnectionUI(true);
+        if (showFeedback) showToast('☁️ 已自動備份至 Google 雲端硬碟！');
+      } catch (err) {
+        console.error(err);
+        if (showFeedback) showToast('❌ Google 雲端硬碟備份失敗');
+      }
+    }
+
+    async function restoreFromGoogleDrive() {
+      if (!googleAccessToken) {
+        showToast('ℹ️ 請先連結 Google 服務');
+        openModal('googleSettingsModal');
+        return;
+      }
+      try {
+        const fileId = await findDriveBackupFileId();
+        if (!fileId) {
+          showToast('⚠️ 雲端硬碟中尚未找到備份檔');
+          return;
+        }
+        if (!confirm('確定要從 Google 雲端硬碟還原最新備份嗎？')) return;
+        const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+          headers: { Authorization: `Bearer ${googleAccessToken}` }
+        });
+        if (!res.ok) throw new Error('下載備份檔失敗');
+        const parsed = await res.json();
+        const restored = parsed.data ? parsed.data : parsed;
+        deskState = { ...deskState, ...restored };
+        saveState(false);
+        refreshAllUI();
+        closeModal('backupModal');
+        showToast('🎉 已成功從 Google 雲端硬碟還原資料！');
+      } catch (err) {
+        console.error(err);
+        showToast('❌ 從 Google 雲端硬碟還原失敗');
+      }
+    }
+
+    /* ================= 7. LINE 訊息通知模組 ================= */
+    function saveLineSettings() {
+      deskState.lineWebhookUrl = document.getElementById('lineWebhookUrlInput').value.trim();
+      deskState.linePollInterval = Math.max(15, parseInt(document.getElementById('linePollIntervalInput').value, 10) || 60);
+      saveState(true);
+      closeModal('lineSettingsModal');
+      startLinePolling();
+      showToast('✅ LINE 通知設定已儲存！');
+    }
+
+    function startLinePolling() {
+      clearInterval(linePollTimer);
+      if (!deskState.lineWebhookUrl) {
+        document.getElementById('lineStatusText').textContent = '⚪ 尚未設定中繼端點';
+        renderLineMessages();
+        return;
+      }
+      document.getElementById('lineStatusText').textContent = `🟢 監聽中（每 ${deskState.linePollInterval} 秒）`;
+      pollLineMessages(false);
+      linePollTimer = setInterval(() => pollLineMessages(false), deskState.linePollInterval * 1000);
+    }
+
+    async function pollLineMessages(showFeedback = false) {
+      if (!deskState.lineWebhookUrl) {
+        if (showFeedback) {
+          showToast('ℹ️ 請先點「⚙️ 設定」填入 LINE 訊息中繼網址');
+          openModal('lineSettingsModal');
+        }
+        return;
+      }
+      try {
+        const res = await fetch(deskState.lineWebhookUrl);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const incoming = await res.json();
+        if (!Array.isArray(incoming)) throw new Error('回傳格式需為陣列');
+
+        const existingIds = new Set(deskState.lineMessages.map(m => m.id));
+        let newCount = 0;
+        incoming.forEach((msg, idx) => {
+          const id = String(msg.id || `${msg.time || ''}_${msg.text || idx}`);
+          if (!existingIds.has(id)) {
+            deskState.lineMessages.unshift({
+              id,
+              sender: msg.sender || 'LINE 訊息',
+              text: msg.text || '',
+              time: msg.time || nowTimeStr(),
+              read: false
+            });
+            existingIds.add(id);
+            newCount++;
+            notifyUserDesktop(`💬 LINE 新訊息（${msg.sender || '好友'}）`, msg.text || '您有一則新訊息');
+          }
+        });
+
+        deskState.lineMessages = deskState.lineMessages.slice(0, 30);
+        if (newCount > 0) {
+          saveState(false);
+          showToast(`💬 收到 ${newCount} 則新的 LINE 訊息！`);
+        } else if (showFeedback) {
+          showToast('✅ LINE 訊息已是最新');
+        }
+        renderLineMessages();
+      } catch (err) {
+        console.error(err);
+        document.getElementById('lineStatusText').textContent = '🟠 連線失敗，請檢查端點';
+        if (showFeedback) showToast('❌ 讀取 LINE 中繼端點失敗');
+      }
+    }
+
+    function sendTestLineNotif() {
+      const testMsg = {
+        id: 'line_test_' + Date.now(),
+        sender: 'LINE 測試通知',
+        text: '下班書桌 LINE 通知運作正常！收到新訊息時會自動提醒您 💬',
+        time: nowTimeStr(),
+        read: false
+      };
+      deskState.lineMessages.unshift(testMsg);
+      deskState.lineMessages = deskState.lineMessages.slice(0, 30);
+      saveState(false);
+      renderLineMessages();
+      notifyUserDesktop('💬 LINE 新訊息通知', testMsg.text);
+      showToast('🔔 已發送一則 LINE 測試通知！');
+    }
+
+    function markLineRead(id) {
+      const m = deskState.lineMessages.find(x => x.id === id);
+      if (m) m.read = true;
+      saveState(false);
+      renderLineMessages();
+    }
+
+    function renderLineMessages() {
+      const listEl = document.getElementById('lineMsgList');
+      const badgeEl = document.getElementById('lineUnreadBadge');
+      const unread = deskState.lineMessages.filter(m => !m.read).length;
+      badgeEl.textContent = unread;
+
+      if (deskState.lineMessages.length === 0) {
+        listEl.innerHTML = `
+          <div style="text-align:center; color:#166534; padding:14px 8px; font-size:0.76rem; background:rgba(255,255,255,0.75); border-radius:10px;">
+            暫無新訊息，可點右上角「⚙️ 設定」連結 LINE Webhook 或點「🔔 測試通知」體驗。
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = deskState.lineMessages.map(m => `
+        <div class="line-msg-item ${m.read ? '' : 'unread'}" onclick="markLineRead('${m.id}')" style="cursor:pointer;" title="點擊標示已讀">
+          <div class="line-msg-head">
+            <span>${m.read ? '✓ ' : '🟢 '}${escapeHtml(m.sender)}</span>
+            <span>${escapeHtml(m.time)}</span>
+          </div>
+          <div class="line-msg-body">${escapeHtml(m.text)}</div>
+        </div>
+      `).join('');
+    }
+
+    function copyLineGasTemplate() {
+      const code = `// Google Apps Script (部署為網頁應用程式，存取權限設為「所有人」)
+// 1. 將部署網址貼到 LINE Developers Messaging API 的 Webhook URL
+// 2. 將同一個網址貼到下班書桌的「LINE 訊息中繼 API 網址」
+function doPost(e) {
+  const props = PropertiesService.getScriptProperties();
+  const list = JSON.parse(props.getProperty('msgs') || '[]');
+  const data = JSON.parse(e.postData.contents);
+  (data.events || []).forEach(ev => {
+    if (ev.type === 'message' && ev.message.type === 'text') {
+      list.unshift({
+        id: ev.message.id,
+        sender: 'LINE 好友',
+        text: ev.message.text,
+        time: Utilities.formatDate(new Date(), 'Asia/Taipei', 'MM/dd HH:mm')
+      });
+    }
+  });
+  props.setProperty('msgs', JSON.stringify(list.slice(0, 20)));
+  return ContentService.createTextOutput('OK');
+}
+function doGet() {
+  const props = PropertiesService.getScriptProperties();
+  const msgs = props.getProperty('msgs') || '[]';
+  return ContentService.createTextOutput(msgs).setMimeType(ContentService.MimeType.JSON);
+}`;
+      navigator.clipboard.writeText(code).then(() => {
+        showToast('📋 已複製 Google Apps Script 接收端範例碼！');
+      });
+    }
+
+    function requestBrowserNotifPermission() {
+      if (!('Notification' in window)) {
+        showToast('⚠️ 此瀏覽器不支援桌面通知');
+        return;
+      }
+      Notification.requestPermission().then(p => {
+        showToast(p === 'granted' ? '🔔 已開啟瀏覽器桌面通知權限！' : '⚠️ 尚未允許桌面通知');
+      });
+    }
+
+    function notifyUserDesktop(title, body) {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, { body });
+      }
+    }
+
+    /* ================= 8. 智慧分類引擎（待辦・繳費・還書・取件・行事曆・電話） ================= */
+    function setInputMode(mode) {
+      inputMode = mode;
+      document.getElementById('btnAutoMode').classList.toggle('active', mode === 'auto');
+      document.getElementById('btnManualMode').classList.toggle('active', mode === 'manual');
+      if (mode === 'auto') previewAutoClassify();
+      else document.querySelectorAll('#categoryCheckboxes .cat-check').forEach(el => el.classList.remove('detected'));
+    }
+
+    function detectCategoriesFromText(text) {
+      const cats = new Set();
+      const t = text.trim();
+      if (!t) return [];
+
+      if (/繳費|帳單|信用卡|水費|電費|瓦斯|電信費|停車費|稅|卡費/.test(t)) cats.add('bill');
+      if (/還書|圖書館|借書|預約書|歸還/.test(t)) cats.add('book');
+      if (/取件|取貨|包裹|超商|7-11|全家|萊爾富|蝦皮|領貨|到店/.test(t)) cats.add('pickup');
+      if (/電話|致電|回電|撥打|打給|聯繫|聯絡|09\d{2}/i.test(t)) cats.add('phone');
+      if (/明天|後天|下週|週[一二三四五六日天]|禮拜[一二三四五六日天]|\d{1,2}月\d{1,2}[日號]|\d{1,2}:\d{2}|\d{1,2}點|聚餐|活動|行程|預約/.test(t)) cats.add('cal');
+
+      if (cats.size === 0) cats.add('todo');
+      return Array.from(cats);
+    }
+
+    function parseSmartDateTime(text) {
+      const d = new Date();
+      if (/後天/.test(text)) d.setDate(d.getDate() + 2);
+      else if (/明天/.test(text)) d.setDate(d.getDate() + 1);
+      else if (/下週|下禮拜/.test(text)) d.setDate(d.getDate() + 7);
+
+      const mdMatch = text.match(/(\d{1,2})月(\d{1,2})[日號]/);
+      if (mdMatch) {
+        d.setMonth(parseInt(mdMatch[1], 10) - 1);
+        d.setDate(parseInt(mdMatch[2], 10));
+      }
+
+      let hour = 19, minute = 0;
+      const hmMatch = text.match(/(\d{1,2})[:：](\d{2})/);
+      const zhMatch = text.match(/(上午|早上|中午|下午|晚上)?\s*(\d{1,2})\s*點\s*(半|\d{1,2}分?)?/);
+      if (hmMatch) {
+        hour = parseInt(hmMatch[1], 10);
+        minute = parseInt(hmMatch[2], 10);
+      } else if (zhMatch) {
+        const period = zhMatch[1] || '';
+        hour = parseInt(zhMatch[2], 10);
+        if ((period === '下午' || period === '晚上') && hour < 12) hour += 12;
+        if (zhMatch[3] === '半') minute = 30;
+        else if (zhMatch[3]) minute = parseInt(zhMatch[3], 10) || 0;
+      }
+
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+      return { dateStr, timeStr };
+    }
+
+    function previewAutoClassify() {
+      if (inputMode !== 'auto') return;
+      const text = document.getElementById('smartInput').value;
+      const detected = detectCategoriesFromText(text);
+      ['todo', 'bill', 'book', 'pickup', 'cal', 'phone'].forEach(cat => {
+        const lbl = document.getElementById(`lbl-${cat}`);
+        const cb = lbl.querySelector('input');
+        const hit = detected.includes(cat);
+        cb.checked = hit;
+        lbl.classList.toggle('detected', hit && text.trim().length > 0);
+      });
+    }
+
+    function onManualCheckChange() {
+      if (inputMode === 'auto') setInputMode('manual');
+    }
+
+    function handleSmartSubmit() {
+      const inputEl = document.getElementById('smartInput');
+      const text = inputEl.value.trim();
+      if (!text) return showToast('⚠️ 請先輸入要記錄的內容！');
+
+      const checkedCats = Array.from(document.querySelectorAll('#categoryCheckboxes input:checked')).map(cb => cb.value);
+      const targetCats = checkedCats.length > 0 ? checkedCats : (inputMode === 'auto' ? detectCategoriesFromText(text) : ['todo']);
+      const isUrgent = document.getElementById('urgentCheck').checked || /重要|急件|今天到期|馬上/.test(text);
+      const dtPicker = document.getElementById('taskDateTime').value;
+
+      let parsedDT = parseSmartDateTime(text);
+      if (dtPicker) {
+        const [dPart, tPart] = dtPicker.split('T');
+        parsedDT = { dateStr: dPart, timeStr: tPart };
+      }
+
+      const nowStamp = `${todayStr()} ${nowTimeStr()}`;
+      targetCats.forEach((cat, idx) => {
+        deskState.tasks.unshift({
+          id: `task_${Date.now()}_${idx}`,
+          text,
+          category: cat,
+          urgent: isUrgent,
+          date: parsedDT.dateStr,
+          time: ['bill', 'book', 'pickup'].includes(cat) ? '' : parsedDT.timeStr,
+          completed: false,
+          createdAt: nowStamp
+        });
+        if (cat === 'cal') {
+          deskState.events.push({
+            id: `ev_${Date.now()}_${idx}`,
+            title: text,
+            date: parsedDT.dateStr,
+            time: parsedDT.timeStr,
+            location: ''
+          });
+        }
+      });
+
+      inputEl.value = '';
+      document.getElementById('urgentCheck').checked = false;
+      document.getElementById('taskDateTime').value = '';
+      previewAutoClassify();
+
+      saveState(true);
+      refreshAllUI();
+
+      const catNames = { todo: '待辦事項', bill: '繳費通知', book: '還書通知', pickup: '取件通知', cal: '行事曆', phone: '電話聯繫' };
+      showToast(`📌 已記錄至：${targetCats.map(c => catNames[c]).join('、')}`);
+    }
+
+    /* ================= 9. 生活通知（繳費・還書・取件） ================= */
+    function setLifeFilter(type) {
+      currentLifeFilter = type;
+      document.querySelectorAll('#lifeFilterTabs .life-tab-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.ltype === type);
+      });
+      renderLifeAlerts();
+    }
+
+    function quickAddLifeAlert() {
+      const cat = document.getElementById('lifeTypeSelect').value;
+      const titleInput = document.getElementById('lifeTitleInput');
+      const dueDate = document.getElementById('lifeDueDateInput').value || todayStr();
+      const text = titleInput.value.trim();
+      if (!text) return showToast('⚠️ 請輸入通知項目名稱！');
+
+      deskState.tasks.unshift({
+        id: `life_${Date.now()}`,
+        text,
+        category: cat,
+        urgent: dueDate <= offsetDateStr(1),
+        date: dueDate,
+        time: '',
+        completed: false,
+        createdAt: `${todayStr()} ${nowTimeStr()}`
+      });
+
+      titleInput.value = '';
+      saveState(true);
+      refreshAllUI();
+      showToast('🔔 已新增生活通知項目！');
+    }
+
+    function renderLifeAlerts() {
+      const listEl = document.getElementById('lifeAlertList');
+      const badgeEl = document.getElementById('lifeCountBadge');
+      const td = todayStr();
+
+      const lifeCats = ['bill', 'book', 'pickup'];
+      const allPending = deskState.tasks.filter(t => lifeCats.includes(t.category) && !t.completed);
+      badgeEl.textContent = allPending.length;
+
+      const filtered = allPending
+        .filter(t => currentLifeFilter === 'all' || t.category === currentLifeFilter)
+        .sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999'));
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `<div style="text-align:center; color:#b45309; padding:14px; font-size:0.78rem; background:rgba(255,255,255,0.7); border-radius:10px;">✨ 目前沒有待處理的繳費、還書或取件通知</div>`;
+        return;
+      }
+
+      const typeLabel = { bill: '💳 繳費', book: '📚 還書', pickup: '📦 取件' };
+
+      listEl.innerHTML = filtered.map(item => {
+        const diffDays = Math.round((new Date(item.date || td) - new Date(td)) / (1000 * 60 * 60 * 24));
+        let dueText = `剩 ${diffDays} 天`;
+        let dueCls = '';
+        if (diffDays < 0) { dueText = `逾期 ${Math.abs(diffDays)} 天`; dueCls = 'overdue'; }
+        else if (diffDays === 0) { dueText = '今天到期！'; dueCls = 'today'; }
+        else if (diffDays <= 2) { dueText = `剩 ${diffDays} 天`; dueCls = 'soon'; }
+
+        return `
+          <div class="life-item type-${item.category} ${diffDays <= 1 ? 'due-soon' : ''}">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px;">
+              <span style="font-weight:900; font-size:0.75rem; color:#475569;">${typeLabel[item.category]}</span>
+              <span class="due-badge ${dueCls}">${dueText} (${item.date})</span>
+            </div>
+            <div style="font-weight:800; color:#0f172a; margin-bottom:5px;" ondblclick="editStickyText('${item.id}')">${escapeHtml(item.text)}</div>
+            <div style="display:flex; justify-content:flex-end; gap:5px;">
+              <button class="s-btn" onclick="toggleTaskComplete('${item.id}')">✅ 已完成</button>
+              <button class="s-btn" onclick="deleteTask('${item.id}')">🗑️</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function checkDueLifeAlertsOnStartup() {
+      const td = todayStr();
+      const tomorrow = offsetDateStr(1);
+      const urgentItems = deskState.tasks.filter(t =>
+        ['bill', 'book', 'pickup'].includes(t.category) && !t.completed && t.date && t.date <= tomorrow
+      );
+      if (urgentItems.length > 0) {
+        const msg = `您有 ${urgentItems.length} 筆繳費/還書/取件即將到期：${urgentItems.map(i => i.text).slice(0, 2).join('、')}`;
+        setTimeout(() => showToast('🔔 ' + msg), 1200);
+        notifyUserDesktop('🔔 下班書桌生活通知', msg);
+      }
+    }
+
+    /* ================= 10. 待辦事項清單 & 便利貼牆 ================= */
+    function quickAddTodo() {
+      const input = document.getElementById('quickTodoInput');
+      const text = input.value.trim();
+      if (!text) return showToast('⚠️ 請輸入待辦事項內容！');
+      const td = todayStr();
+      deskState.tasks.unshift({
+        id: 'todo_' + Date.now(),
+        text,
+        category: 'todo',
+        urgent: /重要|急件/.test(text),
+        date: td,
+        time: '',
+        completed: false,
+        createdAt: `${td} ${nowTimeStr()}`
+      });
+      input.value = '';
+      saveState(true);
+      refreshAllUI();
+      showToast('✅ 已新增待辦事項！');
+    }
+
+    function renderTodoPanel() {
+      const listEl = document.getElementById('todoPanelList');
+      const badgeEl = document.getElementById('todoCountBadge');
+      const showDone = document.getElementById('todoShowDoneToggle').checked;
+
+      const allTodos = deskState.tasks.filter(t => t.category === 'todo');
+      badgeEl.textContent = allTodos.filter(t => !t.completed).length;
+
+      const displayList = allTodos
+        .filter(t => showDone || !t.completed)
+        .sort((a, b) => (a.completed - b.completed) || (b.urgent - a.urgent) || b.id.localeCompare(a.id));
+
+      if (displayList.length === 0) {
+        listEl.innerHTML = `<div style="text-align:center; color:#6d28d9; padding:16px; font-size:0.78rem; background:rgba(255,255,255,0.7); border-radius:10px;">✨ 目前沒有未完成的待辦事項！</div>`;
+        return;
+      }
+
+      listEl.innerHTML = displayList.map(item => `
+        <div class="todo-item ${item.urgent ? 'urgent' : ''} ${item.completed ? 'completed' : ''}">
+          <div class="todo-text" ondblclick="editStickyText('${item.id}')">${item.urgent ? '🔥 ' : ''}${escapeHtml(item.text)}</div>
+          <div class="todo-foot">
+            <span>🗓️ ${item.date === todayStr() ? '今天' : item.date}</span>
+            <div style="display:flex; gap:4px;">
+              <button class="s-btn" onclick="toggleTaskComplete('${item.id}')">${item.completed ? '↩️' : '✅ 完成'}</button>
+              <button class="s-btn" onclick="toggleTaskUrgent('${item.id}')">${item.urgent ? '🔥' : '☆'}</button>
+              <button class="s-btn" onclick="deleteTask('${item.id}')">🗑️</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function setStickyFilter(filter) {
+      currentStickyFilter = filter;
+      document.querySelectorAll('#stickyFilterTabs .tab-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === filter);
+      });
+      renderStickyNotes();
+    }
+
+    function renderStickyNotes() {
+      const td = todayStr();
+      const showCompleted = document.getElementById('showCompletedToggle').checked;
+      const activeTasks = deskState.tasks.filter(t => !t.completed);
+      const lifeCats = ['bill', 'book', 'pickup'];
+
+      document.getElementById('cnt-all').textContent = activeTasks.length;
+      document.getElementById('cnt-todo').textContent = activeTasks.filter(t => t.category === 'todo').length;
+      document.getElementById('cnt-life').textContent = activeTasks.filter(t => lifeCats.includes(t.category)).length;
+      document.getElementById('cnt-cal').textContent = activeTasks.filter(t => t.category === 'cal').length;
+      document.getElementById('cnt-phone').textContent = activeTasks.filter(t => t.category === 'phone').length;
+
+      let filtered = deskState.tasks.filter(t => {
+        if (!showCompleted && t.completed) return false;
+        if (currentStickyFilter === 'life') return lifeCats.includes(t.category);
+        if (currentStickyFilter !== 'all' && t.category !== currentStickyFilter) return false;
+        return true;
+      });
+
+      filtered.sort((a, b) => (a.completed - b.completed) || (b.urgent - a.urgent) || b.id.localeCompare(a.id));
+
+      const grid = document.getElementById('stickyNotesGrid');
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column:1/-1; text-align:center; padding:40px 15px; color:#64748b;">
+            <div style="font-size:2.4rem; margin-bottom:8px;">🌤️</div>
+            <div style="font-weight:900; font-size:1rem;">太輕鬆了！目前沒有待處理便利貼</div>
+          </div>
+        `;
+        return;
+      }
+
+      const catLabels = {
+        todo: '✅ 待辦事項',
+        bill: '💳 繳費通知',
+        book: '📚 還書通知',
+        pickup: '📦 取件通知',
+        phone: '📞 電話聯繫',
+        cal: '📅 行事曆'
+      };
+
+      grid.innerHTML = filtered.map(task => `
+        <div class="sticky-note ${task.urgent ? 'urgent' : ''} ${task.completed ? 'completed' : ''}">
+          <div class="sticky-badge-row">
+            <span class="sticky-cat-tag">${catLabels[task.category] || '✅ 待辦'}</span>
+            <span style="font-size:0.75rem; cursor:pointer;" onclick="toggleTaskUrgent('${task.id}')">${task.urgent ? '🔥 重要' : '☆'}</span>
+          </div>
+          <div class="sticky-text" ondblclick="editStickyText('${task.id}')" title="雙擊修改">${escapeHtml(task.text)}</div>
+          <div class="sticky-meta">
+            <span>🗓️ ${task.date === td ? '今天' : task.date} ${task.time || ''}</span>
+          </div>
+          <div class="sticky-actions">
+            <button class="s-btn" onclick="toggleTaskComplete('${task.id}')">${task.completed ? '↩️ 復原' : '✅ 完成'}</button>
+            <div style="display:flex; gap:3px;">
+              <button class="s-btn" title="同步至 Google 行事曆" onclick="syncTaskToGCal('${task.id}')">📅</button>
+              <button class="s-btn" title="刪除" onclick="deleteTask('${task.id}')">🗑️</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleTaskComplete(id) {
+      const t = deskState.tasks.find(x => x.id === id);
+      if (!t) return;
+      t.completed = !t.completed;
+      t.completedAt = t.completed ? `${todayStr()} ${nowTimeStr()}` : '';
+      saveState(true);
+      refreshAllUI();
+      showToast(t.completed ? '🎉 已完成！' : '↩️ 已復原為待辦');
+    }
+
+    function toggleTaskUrgent(id) {
+      const t = deskState.tasks.find(x => x.id === id);
+      if (!t) return;
+      t.urgent = !t.urgent;
+      saveState(true);
+      refreshAllUI();
+    }
+
+    function editStickyText(id) {
+      const t = deskState.tasks.find(x => x.id === id);
+      if (!t) return;
+      const updated = prompt('修改內容：', t.text);
+      if (updated !== null && updated.trim()) {
+        t.text = updated.trim();
+        saveState(true);
+        refreshAllUI();
+        showToast('✏️ 內容已更新');
+      }
+    }
+
+    function deleteTask(id) {
+      if (!confirm('確定要刪除這筆項目嗎？')) return;
+      deskState.tasks = deskState.tasks.filter(x => x.id !== id);
+      saveState(true);
+      refreshAllUI();
+      showToast('🗑️ 已刪除項目');
+    }
+
+    /* ================= 11. 常用網頁捷徑 ================= */
+    function normalizeWebUrl(url) {
+      const trimmed = String(url || '').trim();
+      if (/^https?:\/\//i.test(trimmed)) return trimmed;
+      if (/^www\./i.test(trimmed)) return 'https://' + trimmed;
+      if (!/^[a-zA-Z]:/.test(trimmed) && !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed) && trimmed.includes('.')) {
+        return 'https://' + trimmed;
+      }
+      return trimmed;
+    }
+
+    function isWebAppUrl(url) {
+      return /^https?:\/\//i.test(normalizeWebUrl(url));
+    }
+
+    function renderApps() {
+      const grid = document.getElementById('appsGrid');
+      grid.innerHTML = deskState.apps.map(app => {
+        const normalizedUrl = normalizeWebUrl(app.url);
+        if (isWebAppUrl(normalizedUrl)) {
+          return `
+            <a class="app-icon-item" href="${escapeAttr(normalizedUrl)}" target="_blank" rel="noopener noreferrer" title="${escapeAttr(normalizedUrl)}">
+              <span class="app-web-badge">↗</span>
+              ${!app.builtin ? `<button type="button" class="app-del-btn" onclick="event.preventDefault(); event.stopPropagation(); deleteApp('${app.id}')">✕</button>` : ''}
+              <div class="app-emoji-circle" style="background:${app.color || '#e2e8f0'}">${app.icon}</div>
+              <div class="app-name">${escapeHtml(app.name)}</div>
+            </a>
+          `;
+        }
+        return `
+          <div class="app-icon-item" onclick="launchApp('${app.id}')" title="${escapeAttr(app.url)}">
+            ${!app.builtin ? `<button type="button" class="app-del-btn" onclick="event.stopPropagation(); deleteApp('${app.id}')">✕</button>` : ''}
+            <div class="app-emoji-circle" style="background:${app.color || '#e2e8f0'}">${app.icon}</div>
+            <div class="app-name">${escapeHtml(app.name)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function launchApp(appId) {
+      const app = deskState.apps.find(a => a.id === appId);
+      if (!app) return;
+      if (app.special === 'explorer') {
+        showToast('📁 提示：請按鍵盤快捷鍵 Win + E 開啟檔案管理員！');
+        return;
+      }
+      window.location.href = app.url;
+    }
+
+    function saveNewAppShortcut() {
+      const name = document.getElementById('newAppName').value.trim();
+      let url = document.getElementById('newAppUrl').value.trim();
+      const icon = document.getElementById('newAppIcon').value;
+      if (!name || !url) return showToast('⚠️ 請輸入名稱與網址！');
+      url = normalizeWebUrl(url);
+      const colors = ['#fde68a', '#bae6fd', '#bbf7d0', '#fbcfe8', '#ddd6fe', '#fed7aa'];
+      deskState.apps.push({
+        id: 'app_' + Date.now(),
+        name,
+        url,
+        icon,
+        color: colors[deskState.apps.length % colors.length],
+        builtin: false
+      });
+      document.getElementById('newAppName').value = '';
+      document.getElementById('newAppUrl').value = '';
+      saveState(true);
+      renderApps();
+      closeModal('addAppModal');
+      showToast(`✅ 已新增捷徑「${name}」`);
+    }
+
+    function deleteApp(appId) {
+      if (!confirm('確定要移除這個自訂捷徑嗎？')) return;
+      deskState.apps = deskState.apps.filter(a => a.id !== appId);
+      saveState(true);
+      renderApps();
+    }
+
+    /* ================= 12. 行事曆建立、.ics 匯入與後 3 天行程顯示 ================= */
+    function createCalendarEvent() {
+      const title = document.getElementById('calTitle').value.trim();
+      const date = document.getElementById('calDate').value || todayStr();
+      const time = document.getElementById('calTime').value || '19:00';
+      const location = document.getElementById('calLocation').value.trim();
+      if (!title) return showToast('⚠️ 請輸入活動名稱！');
+
+      deskState.events.push({ id: 'ev_' + Date.now(), title, date, time, location });
+      saveState(true);
+      renderUpcomingEvents();
+      openGoogleCalendarLink(title, date, time, location);
+
+      document.getElementById('calTitle').value = '';
+      document.getElementById('calLocation').value = '';
+      showToast('📅 已建立活動並開啟 Google 行事曆！');
+    }
+
+    function openGoogleCalendarLink(title, dateStr, timeStr, location = '') {
+      const cleanDate = dateStr.replace(/-/g, '');
+      const [hh, mm] = (timeStr && timeStr.includes(':') ? timeStr : '19:00').split(':');
+      const startH = String(hh).padStart(2, '0');
+      const endH = String((parseInt(hh, 10) + 1) % 24).padStart(2, '0');
+      const datesParam = `${cleanDate}T${startH}${mm}00/${cleanDate}T${endH}${mm}00`;
+      window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${datesParam}&location=${encodeURIComponent(location)}`, '_blank', 'noopener,noreferrer');
+    }
+
+    function syncTaskToGCal(taskId) {
+      const t = deskState.tasks.find(x => x.id === taskId);
+      if (t) openGoogleCalendarLink(t.text, t.date || todayStr(), t.time || '19:00');
+    }
+
+    function importGoogleCalendarICS(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const text = String(e.target.result || '').replace(/\r\n[ \t]/g, '');
+          const blocks = text.split(/BEGIN:VEVENT/i).slice(1);
+          let added = 0;
+          const existingKeys = new Set(deskState.events.map(ev => `${ev.title}|${ev.date}|${ev.time}`));
+          blocks.forEach((blk, idx) => {
+            const endSplit = blk.split(/END:VEVENT/i)[0];
+            const sumM = endSplit.match(/SUMMARY[^:]*:([^\r\n]+)/i);
+            const dtM = endSplit.match(/DTSTART[^:]*:(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2}))?/i);
+            const locM = endSplit.match(/LOCATION[^:]*:([^\r\n]+)/i);
+            if (sumM && dtM) {
+              const title = sumM[1].replace(/\\n/gi, ' ').replace(/\\,/g, ',').trim();
+              const date = `${dtM[1]}-${dtM[2]}-${dtM[3]}`;
+              const time = dtM[4] ? `${dtM[4]}:${dtM[5]}` : '全天';
+              const key = `${title}|${date}|${time}`;
+              if (!existingKeys.has(key)) {
+                deskState.events.push({ id: `ics_${Date.now()}_${idx}`, title, date, time, location: locM ? locM[1].trim() : '' });
+                existingKeys.add(key);
+                added++;
+              }
+            }
+          });
+          saveState(true);
+          renderUpcomingEvents();
+          showToast(`📅 已從 .ics 匯入 ${added} 筆新行程！`);
+        } catch {
+          showToast('❌ 讀取 .ics 失敗');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function renderUpcomingEvents() {
+      const td = todayStr();
+      const plus3Str = offsetDateStr(3);
+      const next3Box = document.getElementById('next3DaysEventsList');
+      const rangeBadge = document.getElementById('next3DaysRangeText');
+      const listEl = document.getElementById('upcomingEventsList');
+
+      rangeBadge.textContent = `${td.slice(5)} ～ ${plus3Str.slice(5)}`;
+
+      // 合併 Google 行事曆 API 行程與本機行程
+      const combined = [...gcalCache, ...deskState.events]
+        .filter(ev => ev.date >= td)
+        .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+
+      const next3Events = combined.filter(ev => ev.date <= plus3Str);
+      if (next3Events.length === 0) {
+        next3Box.innerHTML = `<div style="text-align:center; color:#047857; padding:10px; font-size:0.76rem;">後 3 天暫無排程（可點上方「🔄 同步」擷取 Google 行事曆）</div>`;
+      } else {
+        next3Box.innerHTML = next3Events.map(ev => {
+          const isToday = ev.date === td;
+          return `
+            <div class="event-item ${isToday ? 'today' : ''}" style="background:#fff;">
+              <div style="flex:1;">
+                <div style="font-weight:800; color:#0f172a;">${ev.source === 'google' ? '🔵 ' : ''}${escapeHtml(ev.title)}</div>
+                <div style="font-size:0.72rem; color:#475569;">🗓️ ${ev.date} ${ev.time} ${ev.location ? '｜ 📍 ' + escapeHtml(ev.location) : ''}</div>
+              </div>
+              <span class="event-badge">${isToday ? '今天' : ev.date.slice(5)}</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      document.getElementById('upcomingCount').textContent = `${combined.length} 筆`;
+      if (combined.length === 0) {
+        listEl.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:12px; font-size:0.78rem;">目前沒有後續排程活動</div>`;
+        return;
+      }
+
+      listEl.innerHTML = combined.map(ev => {
+        const isToday = ev.date === td;
+        const diffDays = Math.round((new Date(ev.date) - new Date(td)) / (1000 * 60 * 60 * 24));
+        const dayBadge = isToday ? '今天' : (diffDays === 1 ? '明天' : `${diffDays}天後`);
+        return `
+          <div class="event-item ${isToday ? 'today' : ''}">
+            <div style="flex:1;">
+              <div style="font-weight:800; color:#0f172a;">${ev.source === 'google' ? '🔵 ' : ''}${escapeHtml(ev.title)}</div>
+              <div style="font-size:0.72rem; color:#64748b;">🗓️ ${ev.date} ${ev.time}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:4px;">
+              <span class="event-badge">${dayBadge}</span>
+              ${ev.source === 'google'
+                ? `<button class="s-btn" onclick="window.open('${escapeAttr(ev.htmlLink)}','_blank','noopener')">↗</button>`
+                : `<button class="s-btn" onclick="deleteEvent('${ev.id}')">✕</button>`}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function deleteEvent(id) {
+      deskState.events = deskState.events.filter(e => e.id !== id);
+      saveState(true);
+      renderUpcomingEvents();
+    }
+
+    /* ================= 13. 本機逐日備份 & 紀錄表 ================= */
+    function performDailyBackup(isStartup = false) {
+      const td = todayStr();
+      const key = BACKUP_PREFIX + td;
+      const already = !!localStorage.getItem(key);
+      localStorage.setItem(key, JSON.stringify({
+        backupDate: td,
+        backupTime: `${td} ${nowTimeStr()}`,
+        data: deskState
+      }));
+      const pill = document.getElementById('backupStatusPill');
+      if (pill && !googleAccessToken) pill.textContent = `💾 ${td} 本機已備份`;
+      if (isStartup && !already && deskState.autoDownloadDaily) downloadBackupJSON(td);
+    }
+
+    function getAllDailyBackups() {
+      const list = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(BACKUP_PREFIX)) {
+          try { list.push(JSON.parse(localStorage.getItem(k))); } catch {}
+        }
+      }
+      return list.sort((a, b) => b.backupDate.localeCompare(a.backupDate));
+    }
+
+    function downloadBackupJSON(dateStr) {
+      const raw = localStorage.getItem(BACKUP_PREFIX + dateStr) || JSON.stringify({ backupDate: dateStr, backupTime: `${dateStr} ${nowTimeStr()}`, data: deskState });
+      const blob = new Blob([raw], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `晴空下班書桌備份_${dateStr}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast(`✅ 已下載備份檔`);
+    }
+
+    function restoreBackupByDate(dateStr) {
+      if (!confirm(`確定還原至 ${dateStr} 的備份？`)) return;
+      const parsed = JSON.parse(localStorage.getItem(BACKUP_PREFIX + dateStr) || '{}');
+      if (parsed.data) {
+        deskState = { ...deskState, ...parsed.data };
+        saveState(false);
+        refreshAllUI();
+        closeModal('backupModal');
+        showToast(`🎉 已還原至 ${dateStr}！`);
+      }
+    }
+
+    function restoreFromFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          const restored = parsed.data ? parsed.data : parsed;
+          deskState = { ...deskState, ...restored };
+          saveState(true);
+          refreshAllUI();
+          closeModal('backupModal');
+          showToast('🎉 已從備份檔還原！');
+        } catch {
+          showToast('❌ 備份檔格式錯誤');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function toggleAutoDownloadSetting() {
+      deskState.autoDownloadDaily = document.getElementById('autoDownloadDailyToggle').checked;
+      saveState(false);
+    }
+
+    function renderDailyBackupsTable() {
+      document.getElementById('autoDownloadDailyToggle').checked = !!deskState.autoDownloadDaily;
+      const backups = getAllDailyBackups();
+      document.getElementById('dailyBackupsTableBody').innerHTML = backups.map(b => `
+        <tr>
+          <td style="font-weight:800;">${escapeHtml(b.backupDate)}</td>
+          <td>${escapeHtml(b.backupTime)}</td>
+          <td>${b.data?.tasks?.length || 0} 筆</td>
+          <td>${b.data?.events?.length || 0} 筆</td>
+          <td style="display:flex; gap:5px;">
+            <button class="s-btn" onclick="downloadBackupJSON('${b.backupDate}')">⬇️ 下載</button>
+            <button class="s-btn" onclick="restoreBackupByDate('${b.backupDate}')">🔄 還原</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderWorkLogTable() {
+      const kw = (document.getElementById('logSearchInput').value || '').trim().toLowerCase();
+      const filtered = deskState.tasks.filter(t => !kw || t.text.toLowerCase().includes(kw) || (t.createdAt && t.createdAt.includes(kw)));
+      const doneCount = deskState.tasks.filter(t => t.completed).length;
+      document.getElementById('workLogStats').textContent = `📊 累計紀錄：共 ${deskState.tasks.length} 筆（已完成 ${doneCount} 筆 / 待處理 ${deskState.tasks.length - doneCount} 筆）`;
+
+      const catMap = { todo: '✅ 待辦', bill: '💳 繳費', book: '📚 還書', pickup: '📦 取件', phone: '📞 電話', cal: '📅 行事曆' };
+      document.getElementById('workLogTableBody').innerHTML = filtered.map(t => `
+        <tr>
+          <td style="white-space:nowrap;">${escapeHtml(t.createdAt || t.date)}</td>
+          <td style="white-space:nowrap;">${catMap[t.category] || '✅ 待辦'}</td>
+          <td>${t.urgent ? '🔥 ' : ''}${escapeHtml(t.text)}</td>
+          <td style="white-space:nowrap; font-weight:800; color:${t.completed ? '#10b981' : '#f97316'};">${t.completed ? '✅ 已完成' : '⏳ 待處理'}</td>
+          <td><button class="s-btn" onclick="toggleTaskComplete('${t.id}'); renderWorkLogTable();">切換</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function exportWorkLogCSV() {
+      const catMap = { todo: '待辦事項', bill: '繳費通知', book: '還書通知', pickup: '取件通知', phone: '電話聯繫', cal: '行事曆' };
+      const lines = ['\uFEFF建立時間,分類,到期/日期,重要,內容,狀態'];
+      deskState.tasks.forEach(t => {
+        lines.push([t.createdAt || t.date, catMap[t.category] || '待辦', t.date || '', t.urgent ? '是' : '否', `"${(t.text || '').replace(/"/g, '""')}"`, t.completed ? '已完成' : '待處理'].join(','));
+      });
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `晴空下班書桌紀錄_${todayStr()}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    /* ================= 14. 通用工具與初始化 ================= */
+    function editDeskTitle() {
+      const next = prompt('請輸入書桌名稱：', deskState.deskTitle);
+      if (next && next.trim()) {
+        deskState.deskTitle = next.trim();
+        saveState(true);
+        document.getElementById('deskOwnerTitle').innerHTML = `<span>${escapeHtml(deskState.deskTitle)}</span><span style="font-size:0.78rem; opacity:0.85;">✏️</span>`;
+      }
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+      document.getElementById('liveClock').textContent = `🕒 ${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} (週${weekDays[now.getDay()]}) ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    }
+
+    function openModal(id) {
+      if (id === 'worklogModal') renderWorkLogTable();
+      if (id === 'backupModal') renderDailyBackupsTable();
+      if (id === 'googleSettingsModal') {
+        document.getElementById('googleClientIdInput').value = deskState.googleClientId || '';
+        document.getElementById('googleAutoBackupCheck').checked = deskState.googleAutoBackup !== false;
+      }
+      if (id === 'lineSettingsModal') {
+        document.getElementById('lineWebhookUrlInput').value = deskState.lineWebhookUrl || '';
+        document.getElementById('linePollIntervalInput').value = deskState.linePollInterval || 60;
+      }
+      document.getElementById(id).classList.add('open');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const box = document.getElementById('toastBox');
+      box.textContent = msg;
+      box.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => box.classList.remove('show'), 3600);
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function escapeAttr(str) {
+      return String(str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    function refreshAllUI() {
+      document.getElementById('deskOwnerTitle').innerHTML = `<span>${escapeHtml(deskState.deskTitle)}</span><span style="font-size:0.78rem; opacity:0.85;">✏️</span>`;
+      document.getElementById('calDate').value = todayStr();
+      document.getElementById('lifeDueDateInput').value = offsetDateStr(2);
+      renderApps();
+      renderStickyNotes();
+      renderLifeAlerts();
+      renderUpcomingEvents();
+      renderTodoPanel();
+      renderGmailList();
+      renderLineMessages();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      performDailyBackup(true);
+      refreshAllUI();
+      updateClock();
+      setInterval(updateClock, 1000);
+      startLinePolling();
+      checkDueLifeAlertsOnStartup();
+    });
+  </script>
+</body>
+</html>
